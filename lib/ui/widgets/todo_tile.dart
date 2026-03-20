@@ -10,33 +10,118 @@ class TodoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(
-        todo.title,
-        style: TextStyle(
-          decoration: todo.completed ? TextDecoration.lineThrough : null,
-          color: todo.isLocalOnly ? Colors.grey : null,
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            context.read<TaskBloc>().add(ToggleTaskCompletion(todo));
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            child: Row(
+              children: [
+                // Custom Checkbox
+                IconButton(
+                  onPressed: () {
+                    context.read<TaskBloc>().add(ToggleTaskCompletion(todo));
+                  },
+                  icon: Icon(
+                    todo.completed
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: todo.completed ? Colors.green : Colors.grey[400],
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                // Task Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        todo.title,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          decoration: todo.completed
+                              ? TextDecoration.lineThrough
+                              : null,
+                          color: todo.completed
+                              ? Colors.grey[500]
+                              : Colors.black87,
+                          fontWeight: todo.completed
+                              ? FontWeight.normal
+                              : FontWeight.w500,
+                        ),
+                      ),
+                      if (todo.isLocalOnly)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.cloud_off_rounded,
+                                  size: 12, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Waiting to sync...',
+                                style: TextStyle(
+                                    fontSize: 10, color: Colors.grey[500]),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // Actions
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded,
+                      color: Colors.red[300], size: 24),
+                  onPressed: () {
+                    _showDeleteConfirmation(context);
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      leading: Checkbox(
-        value: todo.completed,
-        onChanged: (_) {
-          context.read<TaskBloc>().add(ToggleTaskCompletion(todo));
-        },
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (todo.isLocalOnly)
-            const Padding(
-              padding: EdgeInsets.only(right: 8.0),
-              child: Icon(Icons.cloud_off, size: 16, color: Colors.grey),
-            ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Task'),
+        content: const Text('Are you sure you want to delete this task?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
             onPressed: () {
               context.read<TaskBloc>().add(DeleteTask(todo));
+              Navigator.pop(dialogContext);
             },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -26,14 +26,18 @@ abstract class AuthState extends Equatable {
 }
 
 class AuthInitial extends AuthState {}
+
 class AuthLoading extends AuthState {}
+
 class Authenticated extends AuthState {
   final String username;
   const Authenticated(this.username);
   @override
   List<Object?> get props => [username];
 }
+
 class Unauthenticated extends AuthState {}
+
 class AuthError extends AuthState {
   final String message;
   const AuthError(this.message);
@@ -51,9 +55,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     await Future.delayed(const Duration(seconds: 1)); // Mock delay
-    
+
     // Hardcoded credentials for mock login
-    if (event.username == 'admin' && event.password == 'password') {
+    if (event.username == 'admin' && event.password == 'admin123') {
       emit(Authenticated(event.username));
     } else {
       emit(const AuthError('Invalid username or password'));
